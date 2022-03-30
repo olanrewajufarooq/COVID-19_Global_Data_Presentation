@@ -46,7 +46,7 @@ end
 x = {data.country};
 y = {data.state};
 
-state_struct = struct('Country', {'All'}, 'States', {{'All'}}, 'Confirmed_Cases', {[]}, 'Death_Cases', {[]});
+state_struct = struct('Country', {'All'}, 'States', {{'All'}}, 'Confirmed_Cases_Cum', {[]}, 'Death_Cases_Cum', {[]}, 'Confirmed_Cases_Day', {[]}, 'Death_Cases_Day', {[]});
 
 count = 1;
 for i = 1:length(x)
@@ -85,6 +85,27 @@ for i = 1:length(x)
     state_struct(count).Confirmed_Cases_Day{end+1} = reverse_cum_vec(confirmed_cases);
     state_struct(count).Death_Cases_Day{end+1} = reverse_cum_vec(death_cases);
 end
+
+%% Calculating Global data
+confirmed_cases = zeros(1, size(covid_data, 2)-2);
+death_cases = zeros(1, size(covid_data, 2)-2);
+for k = 3:size(covid_data, 2)
+    
+    for i = 2:size(covid_data, 1)
+        if strcmp(covid_data{i, 2}, '')
+            u = covid_data{i, k};
+            
+            confirmed_cases(k-2) = confirmed_cases(k-2) + u(1);
+            death_cases(k-2) = death_cases(k-2) + u(2);
+        end
+    end
+end
+
+state_struct(1).Confirmed_Cases_Cum = {confirmed_cases};
+state_struct(1).Death_Cases_Cum = {death_cases};
+
+state_struct(1).Confirmed_Cases_Day = {reverse_cum_vec(confirmed_cases)};
+state_struct(1).Death_Cases_Day = {reverse_cum_vec(death_cases)};
 
 %% Save Data
 save collected_data data dates state_struct
