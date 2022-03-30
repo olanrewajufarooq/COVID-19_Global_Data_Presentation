@@ -1,0 +1,86 @@
+clc; clear; close all;
+profile_true = false;
+if profile_true
+    profile off
+    profile on
+end
+
+%% Load Data
+load covid_data;
+headers = cell(1, size(covid_data, 2));
+for i = 1:size(covid_data, 2)
+    header{i} = covid_data{1, i};
+end
+
+%% Gather Country Data
+data = struct();
+
+for i = 2:size(covid_data, 1)
+    data(i-1).country = covid_data{i, 1};
+    data(i-1).state = covid_data{i, 2};
+    data(i-1).confirmed_cases = ones(1, size(covid_data, 2)-2);
+    data(i-1).death_cases = ones(1, size(covid_data, 2)-2);
+    
+    for date_val = 3:size(covid_data, 2)
+        data(i-1).confirmed_cases(1, date_val-2) = covid_data{i, date_val}(1);
+        data(i-1).death_cases(1, date_val-2) = covid_data{i, date_val}(2);
+    end
+    
+    data(i-1).cum_confirmed_cases = cumsum(data(i-1).confirmed_cases);
+    data(i-1).cum_death_cases = cumsum(data(i-1).death_cases);
+end
+
+%% Gather Date Headers
+dates = datetime();
+for i = 3:size(covid_data,2)
+    dates(i-2) = convert_to_date(covid_data(1, i));
+end
+
+%% Gather States Data
+
+%% Getting State For Each Country
+x = {data.country};
+y = {data.state};
+
+state_struct = struct('Country', {'All'}, 'States', {{'All'}}, 'Confirmed_Cases', {[]}, 'Death_Cases', {[]});
+
+count = 1;
+for i = 1:length(x)
+    if ~ismember(x{i}, {state_struct.Country})
+        count = count + 1;
+        state_struct(count).Country = x{i};
+        state_struct(count).Confirmed_Cases = {};
+        state_struct(count).Death_Cases = {};
+    end
+    
+    if strcmp(y{i}, '')
+        u = state_struct(count).States;
+        u{end+1} = 'All';
+        state_struct(count).States = u;
+        % state_struct(count).States{end+1} = 'All';
+    else
+        u = state_struct(count).States;
+        u{end+1} = y{i};
+        state_struct(count).States = u;
+        % state_struct(count).States{end+1} = y{i};
+    end
+    
+    death_cases = zeros(1, size(covid_data,2)-2);
+    confirmed_cases = zeros(1, size(covid_data,2)-2);
+    for k = 3:size(covid_data,2)
+        covid_case_data = covid_data{i+1, k};
+        confirmed_cases(k-2) = covid_case_data(1);
+        death_cases(k-2) = covid_case_data(2);
+    end
+    state_struct(count).Confirmed_Cases{end+1} = confirmed_cases;
+    state_struct(count).Death_Cases{end+1} = death_cases;
+    
+end
+
+%% Save Data
+save collected_data data dates state_struct
+
+%% End of Code
+if profile_true
+    profile viewer
+end

@@ -1,0 +1,29 @@
+%% Load Data
+load collected_data data dates
+
+%% Getting country data
+countries = unique({data.country});
+countries(2:end+1) = countries;
+countries{1} = 'All';
+
+%% Getting State For Each Country
+x = {data.country};
+y = {data.state};
+
+state_struct = struct('Country', {'All'}, 'States', {'All'});
+
+count = 1;
+for i = 1:length(x)
+    if ~ismember(x{i}, {state_struct.Country})
+        count = count + 1;
+        state_struct(count).Country = x{i};
+        state_struct(count).Country = 
+    end
+    
+    if strcmp(y{i}, '')
+        state_struct(count).States = 'All'
+    else
+        
+    end
+        
+end
